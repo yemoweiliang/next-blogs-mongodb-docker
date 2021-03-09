@@ -1,0 +1,33 @@
+version: '3.1'
+
+services:
+    mongo:
+        image: mongo
+        environment:
+            - MONGO_INITDB_ROOT_USERNAME=${MONGO_ROOT_USER}
+            - MONGO_INITDB_ROOT_PASSWORD=${MONGO_ROOT_PASSWORD}
+            - MONGO_INITDB_DATABASE=project
+        volumes:
+            - ./DBdata:/data/db
+    web_page:
+        build: .
+        ports:
+            - "5001:5001"
+        container_name: web-blog
+        volumes:
+        - ./public:/app/public
+        depends_on:
+            - mongo
+    nginx:
+        image: nginx:stable-alpine
+        container_name: webserver
+        ports:
+        -  80:80
+        -  443:443
+        volumes:
+        - ./nginx/conf.d:/etc/nginx/conf.d
+        - ./nginx/cert:/etc/nginx/cert
+        - ./logs/nginx:/var/log/nginx
+        restart: always
+        depends_on:
+        - web_page
